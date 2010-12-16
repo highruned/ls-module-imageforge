@@ -1,5 +1,5 @@
 # ls-module-imageforge
-LemonStand module that additional image manipulation options. In the future this will use an existing image manipulation library.
+LemonStand module that adds additional image manipulation options. In the future this will use an existing image manipulation library.
 
 ## Installation
 1. Download ImageForge
@@ -8,10 +8,10 @@ LemonStand module that additional image manipulation options. In the future this
 1. Done!
 
 ## Usage
-Add two parameters to getThumbnailPath, and image_url requests. Example:
-`$product->getThumbnailPath(50, 50);`
-to:
-`$product->getThumbnailPath(50, 50, true, array('mode' => 'zoom_fit'));`
+Add two parameters to getThumbnailPath, and image_url requests. Example:  
+	$product->getThumbnailPath(50, 50);  
+to:  
+	$product->getThumbnailPath(50, 50, true, array('mode' => 'zoom_fit'));  
 
 ## Technical
 
