@@ -1,16 +1,16 @@
 <?
 
 class ImageForge_Module extends Core_ModuleBase {
-  protected function createModuleInfo() {
-    $CONFIG['TRACE_LOG']['image'] = PATH_APP . '/logs/imageforge.txt';
-    
-    return new Core_ModuleInfo(
-      "ImageForge",
-      "Image manipulation",
-      "Eric Muyser"
-    );
-  }
-  
+	protected function createModuleInfo() {
+		$CONFIG['TRACE_LOG']['imageforge'] = PATH_APP . '/logs/imageforge.txt';
+		
+		return new Core_ModuleInfo(
+			"ImageForge",
+			"Image manipulation",
+			"Eric Muyser"
+		);
+	}
+	
 	public function subscribeEvents() {
 		Backend::$events->addEvent('core:onProcessImage', $this, 'process_image');
 	}
@@ -31,7 +31,6 @@ class ImageForge_Module extends Core_ModuleBase {
 			ImageForge_Helper::makeThumbnail($file->getFileSavePath($file->disk_name), $thumbnail_file, $width, $height, false, $params['mode'], $return_jpeg);
 		}
 		catch(Exception $ex) {
-      throw $ex;
 			@copy(PATH_APP . '/phproad/resources/images/thumbnail_error.gif', $thumbnail_file);
 		}
 

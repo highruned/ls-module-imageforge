@@ -1,7 +1,6 @@
 <?
 
-class ImageForge_Helper
-{
+class ImageForge_Helper {
 	/**
 	 * Creates a thumbnail
 	 * @param string $srcPath Specifies a sources image path
@@ -11,8 +10,7 @@ class ImageForge_Helper
 	 * @param string $mode Specifies a scaling mode. Possible values: keep_ratio, fit. It works only if both width and height are specified as numbers.
 	 * @param string $returnJpeg - returns JPEG (if true) or PNG image
 	 */
-	public static function makeThumbnail($src_path, $dest_path, $dest_width, $dest_height, $forceGd = false, $mode = 'keep_ratio', $return_jpeg = true)
-	{
+	public static function makeThumbnail($src_path, $dest_path, $dest_width, $dest_height, $forceGd = false, $mode = 'keep_ratio', $return_jpeg = true) {
 		$extension = null;
 		$pathInfo = pathinfo($src_path);
 		if(isset($pathInfo['extension']))
