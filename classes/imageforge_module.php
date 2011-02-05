@@ -5,7 +5,7 @@ class ImageForge_Module extends Core_ModuleBase {
 		$CONFIG['TRACE_LOG']['imageforge'] = PATH_APP . '/logs/imageforge.txt';
 		
 		return new Core_ModuleInfo(
-			"ImageForge",
+			"Imageforge",
 			"Image manipulation",
 			"Eric Muyser"
 		);
