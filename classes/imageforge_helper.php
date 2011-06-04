@@ -1,5 +1,7 @@
 <?
 
+
+
 class ImageForge_Helper {
 	/**
 	 * Creates a thumbnail
@@ -27,9 +29,11 @@ class ImageForge_Helper {
 			throw new Phpr_ApplicationException("Invalid height specifier. Please use integer or 'auto' value.");
 
 		list($src_width, $src_height) = getimagesize($src_path);
+		list($orig_width, $orig_height) = getimagesize($src_path);
 
 		$src_ratio = $src_width / $src_height;
 
+		$use_gd = !Phpr::$config->get('IMAGEMAGICK_ENABLED') || $forceGd;
 		$width = $dest_width;
 		$height = $dest_height;
 		$x = $src_y = 0;
@@ -82,54 +86,27 @@ class ImageForge_Helper {
 			}
 			else if($mode == 'zoom_fit')
 			{
-				if($dest_width > $dest_height)
-				{
-					$a_height = $src_height;
+					$a_width = $dest_width / $dest_height * $src_height;
 					$a_height = $dest_height / $dest_width * $src_width;
 
-					if($a_height > $src_height)
-					{
-						$a_width = $dest_width / $dest_height * $src_height;
-
-						if($a_width > $src_width)
-						{
-							$src_x = ($a_width - $src_width) / 2;
-							$src_width = $a_width;
-						}
-					}
-					else
+					if($a_height < $src_height)
 					{
 						$src_y = ($src_height - $a_height) / 2;
 						$src_height = $a_height;
 					}
-				}
-				else if($dest_height > $dest_width)
-				{
-					$a_width = $src_width;
-					$src_width = $dest_width / $dest_height * $src_height;
 
-					$l_width = $src_width > $a_width ? $a_width : $src_width;
-					$h_width = $src_width > $a_width ? $src_width : $a_width;
-
-					$src_x = ($h_width - $l_width) / 2;
-
-					if($a_width > $src_width)
-					{
-						$a_height = $dest_height / $dest_width * $src_width;
-
-						if($a_height > $src_height)
-						{
-							$src_y = ($a_height - $src_height) / 2;
-							$src_height = $a_height;
-						}
-					}
-					else
+					if($a_width < $src_width)
 					{
 						$src_x = ($src_width - $a_width) / 2;
 						$src_width = $a_width;
+						
+						//if(!$use_gd && $src_x)
+							//$src_x -= $src_width;
 					}
-				}
-				else
+					
+/*
+				
+				if($dest_width == $dest_height)
 				{
 					if($src_width > $src_height)
 					{
@@ -147,17 +124,17 @@ class ImageForge_Helper {
 
 						$src_height = $a_height;
 					}
-				}
+				}*/
 			}
 		}
-
+		
 		if($center_image)
 		{
-			$x = ceil($dest_width / 2 - $width / 2);
-			$y = ceil($dest_height / 2 - $height / 2);
+			$x = ceil($orig_width / 2 - $src_width / 2);
+			$y = ceil($orig_height / 2 - $src_height / 2);
 		}
-
-		if(!Phpr::$config->get('IMAGEMAGICK_ENABLED') || $forceGd)
+		
+		if($use_gd)
 		{
 			$image_p = imagecreatetruecolor($width, $height);
 
@@ -185,7 +162,7 @@ class ImageForge_Helper {
 			imagedestroy($image);
 		}
 		else {
-			self::im_resample($src_path, $dest_path, $width, $height, $src_width, $src_height, $return_jpeg);
+			self::im_resample($src_path, $dest_path, $src_x, $src_y, $width, $height, $src_width, $src_height, $return_jpeg);
 		}
 	}
 	
@@ -205,7 +182,7 @@ class ImageForge_Helper {
 		return null;
 	}
 	
-	private static function im_resample($origPath, $destPath, $width, $height, $imgWidth, $imgHeight, $returnJpeg = true)
+	private static function im_resample($origPath, $destPath, $x, $y, $width, $height, $imgWidth, $imgHeight, $returnJpeg = true)
 	{
 		try
 		{
@@ -232,17 +209,24 @@ class ImageForge_Helper {
 			
 			chdir($tmpDir.$currentDir);
 
-			if (strlen($imPath))
-				$imPath .= '/';
 
 			$JpegQuality = Phpr::$config->get('IMAGE_JPEG_QUALITY', 70);
-
+			$scale = $width / $imgWidth * 100;
+			
 			// if ($imgWidth != $width || $imgHeight != $height)
 			// {
 			if ($returnJpeg)
-				$str = '"'.$imPath.'convert" "'.$origPath.'" -antialias -quality '.$JpegQuality.' -thumbnail "'.$imgWidth.'x'.$imgHeight.'>" -bordercolor white -border 1000 -gravity center -crop '.$imgWidth.'x'.$imgHeight.'+0+0 +repage JPEG:'.$outputFile;
+				$str = '"'.$imPath.'/convert" "'.$origPath.'" -antialias -bordercolor white -border 1000 -quality '.$JpegQuality.' -gravity center -crop '.$imgWidth.'x'.$imgHeight.'+0+0 +repage JPEG:'.$outputFile;
 			else
-				$str = '"'.$imPath.'convert" "'.$origPath.'" -antialias -background none -thumbnail "'.$imgWidth.'x'.$imgHeight.'>" -gravity center -crop '.$imgWidth.'x'.$imgHeight.'+0+0 +repage PNG:'.$outputFile;
+				$str = '"'.$imPath.'/convert" "'.$origPath.'" -antialias -background none -gravity center -crop '.$imgWidth.'x'.$imgHeight.'+' . $x . '+' . $y . ' +repage PNG:'.$outputFile;
+
+			$Res = shell_exec($str);
+			
+			if ($returnJpeg)
+				$str = '"'.$imPath.'/convert" "'.$outputFile.'" -antialias -quality '.$JpegQuality.' -gravity center -thumbnail '.$width.'x'.$height. '> +repage JPEG:'.$outputFile;
+			else
+				$str = '"'.$imPath.'/convert" "'.$outputFile.'" -antialias -background none -gravity center -thumbnail '.$width.'x'.$height. '> +repage PNG:'.$outputFile;
+
 
 			// } else
 			// 	$str = '"'.$imPath.'/convert" '.$origPath.' -background white -quality 90 -antialias -strip -geometry '.$width.'x'.$height.' JPEG:'.$outputFile;
@@ -255,7 +239,7 @@ class ImageForge_Helper {
 			$file2Exists = file_exists($resultFileDir.'/output-0');
 
 			if (!$file1Exists && !$file2Exists)
-				throw new Phpr_SystemException("Error converting image with ImageMagick. IM command: \n\n".$str."\n\n");
+				throw new Phpr_SystemException("Error converting image with ImageMagick: {$str}");
 
 			if ($file1Exists)
 				copy($resultFileDir.'/output', $destPath);

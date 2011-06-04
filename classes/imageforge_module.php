@@ -25,15 +25,16 @@ class ImageForge_Module extends Core_ModuleBase {
 		$thumbnail_file = PATH_APP . $thumbnail_path;
 
 		if(file_exists($thumbnail_file))
-			return root_url($thumbnail_path);
+			return $thumbnail_path;
 
 		try {
 			ImageForge_Helper::makeThumbnail($file->getFileSavePath($file->disk_name), $thumbnail_file, $width, $height, false, $params['mode'], $return_jpeg);
 		}
 		catch(Exception $ex) {
 			@copy(PATH_APP . '/phproad/resources/images/thumbnail_error.gif', $thumbnail_file);
+			//throw $ex;
 		}
 
-		return root_url($thumbnail_path);
+		return $thumbnail_path;
 	}
 }
